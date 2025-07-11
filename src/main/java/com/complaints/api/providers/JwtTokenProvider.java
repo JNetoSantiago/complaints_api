@@ -1,34 +1,41 @@
 package com.complaints.api.providers;
 
-import java.util.Date;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import java.nio.charset.StandardCharsets;
+
+import io.jsonwebtoken.security.Keys;
+import javax.crypto.SecretKey;
 
 @Component
 public class JwtTokenProvider {
 
-  private final String jwtSecret = "segredoSuperSecreto";
-  private final long jwtExpirationMs = 86400000;
+  private final SecretKey jwtKey;
+
+  private final long jwtExpirationMs = 86400000; // 1 dia
+
+  public JwtTokenProvider(@Value("${app.jwt.secret}") String secret) {
+    this.jwtKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+  }
 
   public String generateToken(Authentication authentication) {
-    String username = authentication.getName();
+    String cpf = authentication.getName();
 
-    return Jwts.builder()
-        .setSubject(username)
-        .setIssuedAt(new Date())
-        .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
-        .signWith(SignatureAlgorithm.HS512, jwtSecret)
+    System.out.println("JWT key length: " + jwtKey.getEncoded().length + " bytes");
+
+    return io.jsonwebtoken.Jwts.builder()
+        .setSubject(cpf)
+        .setIssuedAt(new java.util.Date())
+        .setExpiration(new java.util.Date(System.currentTimeMillis() + jwtExpirationMs))
+        .signWith(jwtKey, io.jsonwebtoken.SignatureAlgorithm.HS512)
         .compact();
   }
 
   public String getCpfFromToken(String token) {
-    return Jwts.parser()
-        .setSigningKey(jwtSecret)
+    return io.jsonwebtoken.Jwts.parser()
+        .setSigningKey(jwtKey)
         .parseClaimsJws(token)
         .getBody()
         .getSubject();
@@ -36,9 +43,9 @@ public class JwtTokenProvider {
 
   public boolean validateToken(String token) {
     try {
-      Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
+      io.jsonwebtoken.Jwts.parser().setSigningKey(jwtKey).parseClaimsJws(token);
       return true;
-    } catch (JwtException e) {
+    } catch (io.jsonwebtoken.JwtException e) {
       return false;
     }
   }

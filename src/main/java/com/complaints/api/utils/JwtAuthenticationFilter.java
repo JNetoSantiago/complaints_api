@@ -30,8 +30,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       throws ServletException, IOException, java.io.IOException {
 
     String path = request.getRequestURI();
+    System.out.println("Path: " + path);
 
-    if (path.matches("^/auth/.*") || path.matches("^/users/.*")) {
+    if (path.matches("^/auth/.*")) {
       filterChain.doFilter(request, response);
       return;
     }

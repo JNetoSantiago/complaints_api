@@ -33,8 +33,10 @@ public class AuthController {
 
   @PostMapping("/login")
   public ResponseEntity<?> login(@RequestBody AuthRequest request) {
+    String cpf = request.getCpf().replaceAll("[^\\d]", "");
+
     Authentication authentication = authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(request.getCpf(), request.getPassword()));
+        new UsernamePasswordAuthenticationToken(cpf, request.getPassword()));
 
     String token = tokenProvider.generateToken(authentication);
     return ResponseEntity.ok(Collections.singletonMap("token", token));
