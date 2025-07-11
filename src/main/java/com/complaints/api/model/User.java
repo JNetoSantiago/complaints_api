@@ -1,4 +1,4 @@
-package com.complaints.api.models;
+package com.complaints.api.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,8 +7,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import lombok.*;
+
 @Entity
 @Table(name = "users")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,28 +25,4 @@ public class User {
 
   @Column(nullable = false)
   private String password;
-
-  public Long getId() {
-    return id;
-  }
-
-  public String getCpf() {
-    return cpf;
-  }
-
-  public String getPassword() {
-    return password;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public void setCpf(String cpf) {
-    this.cpf = cpf;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
 }
