@@ -43,6 +43,23 @@ services:
       JWT_SECRET: ${JWT_SECRET}
     networks:
       - app-network
+  
+  test:
+    image: maven:3.9.6-eclipse-temurin-21
+    container_name: springboot-tests
+    depends_on:
+      - mysql
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: mvn clean test
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - app-network
 
 volumes:
   mysql_data:
