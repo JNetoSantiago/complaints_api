@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import com.complaints.api.dto.ComplaintRequest;
 import com.complaints.api.dto.ComplaintSummaryResponse;
@@ -58,5 +61,32 @@ public class ComplaintController {
     complaintRepository.save(complaint);
 
     return ResponseEntity.ok("Reclamação registrada com sucesso.");
+  }
+
+  @PutMapping("/{id}")
+  public ResponseEntity<?> updateComplaint(@PathVariable Long id, @Valid @RequestBody ComplaintRequest request,
+      Authentication authentication) {
+    String cpf = authentication.getName();
+    return complaintRepository.findById(id)
+        .filter(c -> c.getCpf().equals(cpf))
+        .map(complaint -> {
+          complaint.setTitle(request.getTitle());
+          complaint.setDescription(request.getDescription());
+          complaintRepository.save(complaint);
+          return ResponseEntity.ok("Reclamação atualizada com sucesso.");
+        })
+        .orElse(ResponseEntity.status(404).body("Reclamação não encontrada ou não pertence ao usuário."));
+  }
+
+  @DeleteMapping("/{id}")
+  public ResponseEntity<?> deleteComplaint(@PathVariable Long id, Authentication authentication) {
+    String cpf = authentication.getName();
+    return complaintRepository.findById(id)
+        .filter(c -> c.getCpf().equals(cpf))
+        .map(complaint -> {
+          complaintRepository.delete(complaint);
+          return ResponseEntity.ok("Reclamação deletada com sucesso.");
+        })
+        .orElse(ResponseEntity.status(404).body("Reclamação não encontrada ou não pertence ao usuário."));
   }
 }

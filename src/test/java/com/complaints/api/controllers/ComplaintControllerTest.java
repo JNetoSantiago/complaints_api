@@ -77,4 +77,87 @@ public class ComplaintControllerTest {
         .andExpect(status().isOk())
         .andExpect(content().string("Reclamação registrada com sucesso."));
   }
+
+  @Test
+  @WithMockUser(username = "12345678900")
+  void shouldUpdateComplaintSuccessfully() throws Exception {
+    Complaint existing = new Complaint();
+    existing.setId(1L);
+    existing.setCpf("12345678900");
+    existing.setTitle("Antigo título");
+    existing.setDescription("Antiga descrição");
+    existing.setCreatedAt(LocalDateTime.now());
+
+    ComplaintRequest updateRequest = new ComplaintRequest();
+    updateRequest.setTitle("Novo título");
+    updateRequest.setDescription("Nova descrição");
+
+    when(complaintRepository.findById(1L)).thenReturn(java.util.Optional.of(existing));
+    when(complaintRepository.save(Mockito.any(Complaint.class))).thenReturn(existing);
+
+    mockMvc.perform(put("/complaints/1")
+        .with(csrf())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(updateRequest)))
+        .andExpect(status().isOk())
+        .andExpect(content().string("Reclamação atualizada com sucesso."));
+  }
+
+  @Test
+  @WithMockUser(username = "12345678900")
+  void shouldNotUpdateComplaintOfAnotherUser() throws Exception {
+    Complaint other = new Complaint();
+    other.setId(2L);
+    other.setCpf("00000000000");
+    other.setTitle("Outro título");
+    other.setDescription("Outra descrição");
+    other.setCreatedAt(LocalDateTime.now());
+
+    ComplaintRequest updateRequest = new ComplaintRequest();
+    updateRequest.setTitle("Novo título");
+    updateRequest.setDescription("Nova descrição");
+
+    when(complaintRepository.findById(2L)).thenReturn(java.util.Optional.of(other));
+
+    mockMvc.perform(put("/complaints/2")
+        .with(csrf())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(updateRequest)))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string("Reclamação não encontrada ou não pertence ao usuário."));
+  }
+
+  @Test
+  @WithMockUser(username = "12345678900")
+  void shouldDeleteComplaintSuccessfully() throws Exception {
+    Complaint existing = new Complaint();
+    existing.setId(1L);
+    existing.setCpf("12345678900");
+    existing.setTitle("Título");
+    existing.setDescription("Descrição");
+    existing.setCreatedAt(LocalDateTime.now());
+
+    when(complaintRepository.findById(1L)).thenReturn(java.util.Optional.of(existing));
+
+    mockMvc.perform(delete("/complaints/1").with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(content().string("Reclamação deletada com sucesso."));
+  }
+
+  @Test
+  @WithMockUser(username = "12345678900")
+  void shouldNotDeleteComplaintOfAnotherUser() throws Exception {
+    Complaint other = new Complaint();
+    other.setId(2L);
+    other.setCpf("00000000000");
+    other.setTitle("Outro título");
+    other.setDescription("Outra descrição");
+    other.setCreatedAt(LocalDateTime.now());
+
+    when(complaintRepository.findById(2L)).thenReturn(java.util.Optional.of(other));
+
+    mockMvc.perform(delete("/complaints/2").with(csrf()))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string("Reclamação não encontrada ou não pertence ao usuário."));
+  }
 }
