@@ -2,6 +2,10 @@
 
 API backend para gerenciamento de reclamações, desenvolvida com Spring Boot.
 
+![Diagrama DER](DER.png)
+
+*Diagrama Entidade-Relacionamento do modelo de dados*
+
 ## Tecnologias
 
 - Java 21

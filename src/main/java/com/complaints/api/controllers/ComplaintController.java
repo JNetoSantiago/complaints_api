@@ -20,6 +20,7 @@ import com.complaints.api.dto.ComplaintRequest;
 import com.complaints.api.dto.ComplaintSummaryResponse;
 import com.complaints.api.model.Complaint;
 import com.complaints.api.repository.ComplaintRepository;
+import com.complaints.api.repository.UserRepository;
 
 import jakarta.validation.Valid;
 
@@ -28,6 +29,8 @@ import jakarta.validation.Valid;
 public class ComplaintController {
   @Autowired
   private ComplaintRepository complaintRepository;
+  @Autowired
+  private UserRepository userRepository;
 
   @GetMapping
   public ResponseEntity<?> listUserComplaints(@RequestParam(defaultValue = "0") int page,
@@ -52,9 +55,16 @@ public class ComplaintController {
       Authentication authentication) {
 
     String cpf = authentication.getName();
+    // Buscar usuário pelo CPF
+    var userOpt = userRepository.findByCpf(cpf);
+    if (userOpt.isEmpty()) {
+      return ResponseEntity.status(404).body("Usuário não encontrado.");
+    }
+    var user = userOpt.get();
 
     Complaint complaint = new Complaint();
     complaint.setCpf(cpf);
+    complaint.setUserId(user.getId());
     complaint.setTitle(request.getTitle());
     complaint.setDescription(request.getDescription());
 
